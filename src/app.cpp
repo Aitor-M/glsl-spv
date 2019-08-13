@@ -17,11 +17,6 @@
 
 
 namespace {
-struct ShaderData {
-  std::string filePath;
-  std::string outputPath;
-  std::string outputName;
-};
 struct {
   std::unique_ptr<sf::RenderWindow> renderWindow;
   sf::Clock deltaClock;
@@ -103,7 +98,7 @@ static void AddFonts() {
 
   io.Fonts->Clear(); // clear fonts if you loaded some before (even if only default one was loaded)
   // IO.Fonts->AddFontDefault(); // this will load default font as well
-  io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSansKR-Regular.otf", 16.f);
+  io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSansKR-Regular.otf", 18.f);
   io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSansKR-Bold.otf", 28.f);
 
   ImGui::SFML::UpdateFontTexture(); // important call: updates font texture
@@ -119,7 +114,7 @@ static bool TextInput(std::string& path, const char* title, const char* hint, Te
   if (type != kTextInput_Text) {
     std::string button_id = "...##";
     button_id.append(title);
-    if (ImGui::Button(button_id.c_str(), ImVec2(30.0f, 26.0f))) {
+    if (ImGui::Button(button_id.c_str(), ImVec2(30.0f, 30.0f))) {
       nfdchar_t* outPath = NULL;
       nfdresult_t result;
       switch (type)
@@ -149,10 +144,11 @@ static bool TextInput(std::string& path, const char* title, const char* hint, Te
     ImGui::SameLine();
     ImGui::PushItemWidth(-1);
   } else {
-    ImGui::PushItemWidth(350);
+    ImGui::PushItemWidth(300);
   }
   std::string input_id = "##";
   input_id.append(title);
+  
   ImGui::InputTextWithHint(input_id.c_str(), hint, (char*)path.data(), 255);
   return return_value;
 }
@@ -243,7 +239,10 @@ static LRESULT CALLBACK mycallback(HWND handle, UINT message, WPARAM wParam, LPA
   return CallWindowProcW(reinterpret_cast<WNDPROC>(AppData.originalsfmlcallback), handle, message, wParam, lParam);
 }
 
-static void DrawShaderData() {
+static void DrawShaderData(uint32_t index) {
+  std::string index_str = std::to_string(index);
+  if (!ImGui::CollapsingHeader(index_str.c_str()))
+    return;
   if (TextInput(AppData.inputFile, "Input", "Path to shader", kTextInput_OpenFile, AppData.defaultPath.c_str(), NULL, false)) {
     std::filesystem::path path(AppData.inputFile);
     AppData.outputPath = AppData.defaultPath = path.parent_path().string();
@@ -256,9 +255,11 @@ static void DrawShaderData() {
   TextInput(AppData.outputPath, "Output Path", "Output path", kTextInput_PickFolder, AppData.defaultPath.c_str(), NULL, false);
   TextInput(AppData.outputName, "Output Name", "Output name", kTextInput_Text, NULL, NULL, false);
   ImGui::SameLine();
-  if (ImGui::Button("Remove", ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
+  SetRedButtonColor();
+  if (ImGui::Button(std::string("Remove##" + index_str).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
     // TODO
   }
+  ResetButtonColor();
 }
 
 #pragma endregion
@@ -301,7 +302,6 @@ void glspv::App::run() {
     if (TextInput(AppData.vulkanSdk, "Vulkan SDK Path", "Path to Vulkan SDK", kTextInput_PickFolder, AppData.defaultVulkanSdk.c_str(), NULL)) {
       AppData.defaultVulkanSdk = AppData.vulkanSdk;
     }
-    ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth(), 500), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding);
     SetGreenButtonColor();
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
     if (ImGui::Button("Add Shader", ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
@@ -309,7 +309,10 @@ void glspv::App::run() {
     }
     ImGui::PopFont();
     ResetButtonColor();
-    DrawShaderData();
+    ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth(), 440), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding);
+    DrawShaderData(0);
+    DrawShaderData(1);
+    DrawShaderData(2);
     ImGui::EndChild();
 
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
