@@ -67,8 +67,8 @@ project "SFMLGui"
     ["Dependencies/*"] = INCLUDE_DEPS .. "**.*"
   }
   files {
-    "include/**.h",
-    "src/main.cpp",
+    "include/*.h",
+    "src/*.cpp",
     INCLUDE_DEPS .. "imgui/*.h",
     INCLUDE_DEPS .. "imgui/*.cpp",
     INCLUDE_DEPS .. "SFML/**.hpp",
