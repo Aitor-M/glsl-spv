@@ -2,8 +2,7 @@
 
 
 int main() {
-  //glspv::App::init({ 480, 640, "GLSL-SPV" });
-  glspv::App::init({ 560, 640, "GLSL-SPV" });
+  glspv::App::init();
   glspv::App::run();
   glspv::App::shutdown();
   return 0;

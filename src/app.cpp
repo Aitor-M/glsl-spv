@@ -5,17 +5,20 @@
 #include <memory>
 #include <windows.h>
 #include <shellapi.h>
+#include <fstream>
 
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/System/Clock.hpp"
 #include "SFML/Window/Event.hpp"
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include "INIReader.h"
 
 #include "shader_list.h"
 #include "utils.h"
 
 namespace {
+
 struct {
   std::unique_ptr<sf::RenderWindow> renderWindow;
   sf::Clock deltaClock;
@@ -23,6 +26,8 @@ struct {
   std::string defaultVulkanSdk = "C:\\VulkanSDK";
   glspv::ShaderList datalist;
   ImVec2 windowSize;
+  std::string title;
+  bool fullscreen;
 
   HWND handle;
   LONG_PTR originalsfmlcallback = 0x0;
@@ -64,11 +69,32 @@ static LRESULT CALLBACK mycallback(HWND handle, UINT message, WPARAM wParam, LPA
   return CallWindowProcW(reinterpret_cast<WNDPROC>(AppData.originalsfmlcallback), handle, message, wParam, lParam);
 }
 
+static void SaveIni() {
+  std::string default_ini =
+    "[Window]\n"\
+    "Title=" + AppData.title + "\n" \
+    "Width=" + std::to_string((int)AppData.windowSize.x) + "\n"\
+    "Height=" + std::to_string((int)AppData.windowSize.y) + "\n";
+  std::ofstream out("settings.ini");
+  out << default_ini;
+  out.close();
+}
+
 #pragma endregion
 
-void glspv::App::init(const glspv::App::WindowProperties& properties) {
-  AppData.renderWindow = std::make_unique<sf::RenderWindow>(sf::VideoMode(properties.width, properties.height), properties.title, sf::Style::Close);
-  AppData.windowSize = ImVec2((float)properties.width, (float)properties.height);
+void glspv::App::init() {
+  AppData.windowSize = ImVec2(560, 640);
+  AppData.title = "GLSL-SPV";
+  INIReader ini("settings.ini");
+  if (!ini.ParseError()) {
+    AppData.title = ini.Get("Window", "Title", AppData.title);
+    AppData.windowSize.x = ini.GetReal("Window", "Width", AppData.windowSize.x);
+    AppData.windowSize.y = ini.GetReal("Window", "Height", AppData.windowSize.y);
+  } else {
+    SaveIni();
+  }
+
+  AppData.renderWindow = std::make_unique<sf::RenderWindow>(sf::VideoMode((unsigned int)AppData.windowSize.x, (unsigned int)AppData.windowSize.y), AppData.title, sf::Style::Close);
   AppData.renderWindow->setFramerateLimit(60);
   ImGui::SFML::Init(*AppData.renderWindow);
 
@@ -77,12 +103,16 @@ void glspv::App::init(const glspv::App::WindowProperties& properties) {
 
   AppData.handle = AppData.renderWindow->getSystemHandle();
 
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = NULL;
+
   DragAcceptFiles(AppData.handle, TRUE);
   AppData.originalsfmlcallback = SetWindowLongPtrW(AppData.handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(mycallback));
 }
 
 void glspv::App::run() {
   while (AppData.renderWindow->isOpen()) {
+
     sf::Event event;
     while (AppData.renderWindow->pollEvent(event)) {
       ImGui::SFML::ProcessEvent(event);

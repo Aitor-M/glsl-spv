@@ -57,6 +57,7 @@ project "SFMLGui"
     "include/deps/",
     INCLUDE_DEPS .. "imgui",
     INCLUDE_DEPS .. "nfd",
+    INCLUDE_DEPS .. "INIReader",
   }
   defines {
     "SFML_STATIC"
@@ -75,6 +76,7 @@ project "SFMLGui"
     INCLUDE_DEPS .. "nfd/*.h",
     INCLUDE_DEPS .. "nfd/nfd_common.c",
     INCLUDE_DEPS .. "nfd/nfd_win.cpp",
+    INCLUDE_DEPS .. "INIReader/INIReader.h",
   }
   libdirs {
     "deps/sfml/"

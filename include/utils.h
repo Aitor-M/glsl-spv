@@ -142,8 +142,8 @@ public:
 
     io.Fonts->Clear(); // clear fonts if you loaded some before (even if only default one was loaded)
     // IO.Fonts->AddFontDefault(); // this will load default font as well
-    io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSansKR-Regular.otf", 18.f);
-    io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSansKR-Bold.otf", 28.f);
+    io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSans/NotoSansKR-Regular.otf", 18.f);
+    io.Fonts->AddFontFromFileTTF("../../resources/fonts/NotoSans/NotoSansKR-Bold.otf", 28.f);
 
     ImGui::SFML::UpdateFontTexture(); // important call: updates font texture
   }

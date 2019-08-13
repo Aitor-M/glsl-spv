@@ -6,12 +6,7 @@
 namespace glspv {
 class App {
 public:
-  struct WindowProperties {
-    uint32_t width;
-    uint32_t height;
-    std::string title;
-  };
-  static void init(const WindowProperties& properties);
+  static void init();
   static void run();
   static void shutdown();
 };
