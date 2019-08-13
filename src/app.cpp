@@ -17,6 +17,11 @@
 
 
 namespace {
+struct ShaderData {
+  std::string filePath;
+  std::string outputPath;
+  std::string outputName;
+};
 struct {
   std::unique_ptr<sf::RenderWindow> renderWindow;
   sf::Clock deltaClock;
@@ -104,14 +109,16 @@ static void AddFonts() {
   ImGui::SFML::UpdateFontTexture(); // important call: updates font texture
 }
 
-static bool TextInput(std::string& path, const char* title, const char* hint, TextInputType type, const char* defaultPath, const char* filterList) {
+static bool TextInput(std::string& path, const char* title, const char* hint, TextInputType type, const char* defaultPath, const char* filterList, bool is_big = true) {
   bool return_value = false;
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
-  ImGui::Text(title);
-  ImGui::PopFont();
-  std::string button_id = "...##";
-  button_id.append(title);
+  if (is_big) {
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+    ImGui::Text(title);
+    ImGui::PopFont();
+  }
   if (type != kTextInput_Text) {
+    std::string button_id = "...##";
+    button_id.append(title);
     if (ImGui::Button(button_id.c_str(), ImVec2(30.0f, 26.0f))) {
       nfdchar_t* outPath = NULL;
       nfdresult_t result;
@@ -140,8 +147,10 @@ static bool TextInput(std::string& path, const char* title, const char* hint, Te
       }
     }
     ImGui::SameLine();
+    ImGui::PushItemWidth(-1);
+  } else {
+    ImGui::PushItemWidth(350);
   }
-  ImGui::PushItemWidth(-1);
   std::string input_id = "##";
   input_id.append(title);
   ImGui::InputTextWithHint(input_id.c_str(), hint, (char*)path.data(), 255);
@@ -234,10 +243,28 @@ static LRESULT CALLBACK mycallback(HWND handle, UINT message, WPARAM wParam, LPA
   return CallWindowProcW(reinterpret_cast<WNDPROC>(AppData.originalsfmlcallback), handle, message, wParam, lParam);
 }
 
+static void DrawShaderData() {
+  if (TextInput(AppData.inputFile, "Input", "Path to shader", kTextInput_OpenFile, AppData.defaultPath.c_str(), NULL, false)) {
+    std::filesystem::path path(AppData.inputFile);
+    AppData.outputPath = AppData.defaultPath = path.parent_path().string();
+    AppData.outputName = path.stem().string() + "-" + path.extension().string().erase(0, 1) + ".spv";
+    printf("Parent path: %s\n", path.parent_path().string().c_str());
+    printf("File name: %s\n", path.stem().string().c_str());
+    printf("File extension: %s\n", path.extension().string().c_str());
+  }
+
+  TextInput(AppData.outputPath, "Output Path", "Output path", kTextInput_PickFolder, AppData.defaultPath.c_str(), NULL, false);
+  TextInput(AppData.outputName, "Output Name", "Output name", kTextInput_Text, NULL, NULL, false);
+  ImGui::SameLine();
+  if (ImGui::Button("Remove", ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
+    // TODO
+  }
+}
+
 #pragma endregion
 
 void glspv::App::init(const glspv::App::WindowProperties& properties) {
-  AppData.renderWindow = std::make_unique<sf::RenderWindow>(sf::VideoMode(480, 640), "ImGui + SFML = <3", sf::Style::Close);
+  AppData.renderWindow = std::make_unique<sf::RenderWindow>(sf::VideoMode(properties.width, properties.height), properties.title, sf::Style::Close);
   AppData.renderWindow->setFramerateLimit(60);
   ImGui::SFML::Init(*AppData.renderWindow);
 
@@ -268,20 +295,23 @@ void glspv::App::run() {
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
     ImGui::SetNextWindowSize(ImVec2(480.f, 640.f));
     ImGui::Begin("Main window", 0, window_flags);
+
+
+
     if (TextInput(AppData.vulkanSdk, "Vulkan SDK Path", "Path to Vulkan SDK", kTextInput_PickFolder, AppData.defaultVulkanSdk.c_str(), NULL)) {
       AppData.defaultVulkanSdk = AppData.vulkanSdk;
     }
-    if (TextInput(AppData.inputFile, "Input", "Path to shader", kTextInput_OpenFile, AppData.defaultPath.c_str(), NULL)) {
-      std::filesystem::path path(AppData.inputFile);
-      AppData.outputPath = AppData.defaultPath = path.parent_path().string();
-      AppData.outputName = path.stem().string() + "-" + path.extension().string().erase(0, 1) + ".spv";
-      printf("Parent path: %s\n", path.parent_path().string().c_str());
-      printf("File name: %s\n", path.stem().string().c_str());
-      printf("File extension: %s\n", path.extension().string().c_str());
-    }
+    ImGui::BeginChild("Child1", ImVec2(ImGui::GetWindowContentRegionWidth(), 500), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysUseWindowPadding);
+    SetGreenButtonColor();
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+    if (ImGui::Button("Add Shader", ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
 
-    TextInput(AppData.outputPath, "Output Path", "", kTextInput_PickFolder, AppData.defaultPath.c_str(), NULL);
-    TextInput(AppData.outputName, "Output Name", "", kTextInput_Text, NULL, NULL);
+    }
+    ImGui::PopFont();
+    ResetButtonColor();
+    DrawShaderData();
+    ImGui::EndChild();
+
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
     SetGreenButtonColor();
     float width = (ImGui::GetContentRegionAvailWidth() * 0.5f) - 5.0f;
@@ -298,7 +328,7 @@ void glspv::App::run() {
     ImGui::PopFont();
     ImGui::End();
 
-    //ImGui::ShowTestWindow();
+    ImGui::ShowTestWindow();
 
 
     AppData.renderWindow->clear();
@@ -309,4 +339,5 @@ void glspv::App::run() {
 
 void glspv::App::shutdown() {
   ImGui::SFML::Shutdown();
+  AppData.renderWindow.reset();
 }
