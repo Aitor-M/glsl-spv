@@ -19,9 +19,14 @@ public:
   // outputPath will equal the same folder as inputFilePath's parent directory
   // outputName will be inputFilePath's fileName + "-" + inputFilePath's extension + ".spv"
   void format(const std::string& inputFilePath);
+  void draw(uint32_t index);
+  bool shouldBeRemoved() const;
+
 private:
+  std::string originalName_;
   std::string inputFileDefaultPath_;
   std::string outputDefaultPath_;
+  bool shouldBeRemoved_ = false;
 };
 }
 

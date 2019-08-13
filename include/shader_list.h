@@ -12,8 +12,9 @@ public:
   ~ShaderList() = default;
   void add(const ShaderData& data);
   void removeAt(size_t index);
-  std::list<ShaderData>& get(size_t index);
-  const std::list<ShaderData>& get(size_t index) const;
+  void draw();
+  void clear();
+  void compile(const std::string& vulkanSdk);
 
 private:
   std::list<ShaderData> list_;
