@@ -9,7 +9,7 @@ printf("Out dir: %s", OUT_DIR)
 os.mkdir(OUT_DIR)
 
 --GENERATE SOLUTION
-solution "_SFML_IMGUI"
+solution "_GLSL-PV"
   defines {
     "_CRT_SECURE_NO_WARNINGS",
     "WIN32_LEAN_AND_MEAN",
@@ -17,7 +17,7 @@ solution "_SFML_IMGUI"
     "WIN64"
   }
   configuration{}
-  windowstargetplatformversion "10.0.18362.0"   
+  windowstargetplatformversion "10.0.18362.0"   -- Change this to your current one 
   location "build"
   configurations {"Debug", "Release"}
     configuration "Debug"
@@ -32,7 +32,7 @@ solution "_SFML_IMGUI"
     configuration "Release"
       objdir "build/release/obj"
       flags {
-        "OptimizeSpeed"
+        "OptimizeSize"
       }
     configuration{}
   platforms {"x64"}
@@ -43,8 +43,8 @@ solution "_SFML_IMGUI"
       
 --END GENERATE SOLUTION
 
---SFMLGui
-project "SFMLGui"
+--GLSL-PV
+project "GLSL-PV"
   language "C++"
   kind "ConsoleApp"
   flags {
@@ -86,12 +86,6 @@ project "SFMLGui"
     "freetype",
     "winmm",
     "gdi32",
-    "openal32",
-    "flac",
-    "vorbisenc",
-    "vorbisfile",
-    "vorbis",
-    "ogg",
     "comctl32"
   }
   configurations {"Debug", "Release"}
@@ -102,17 +96,13 @@ project "SFMLGui"
       links {
         "sfml-system-s-d",
         "sfml-window-s-d",
-        "sfml-graphics-s-d",
-        "sfml-window-s-d",
-        "sfml-audio-s-d"
+        "sfml-graphics-s-d"
       }
     configuration "Release"
       links {
         "sfml-system-s",
         "sfml-window-s",
-        "sfml-graphics-s",
-        "sfml-window-s",
-        "sfml-audio-s"
+        "sfml-graphics-s"
       }
     configuration{}
   

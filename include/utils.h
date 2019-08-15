@@ -41,8 +41,10 @@ public:
         }
 
         if (result == NFD_OKAY) {
+#ifdef  _DEBUG
           puts("Success!");
           puts(outPath);
+#endif
           path = outPath;
           free(outPath);
           return_value = true;
@@ -51,7 +53,9 @@ public:
           puts("User pressed cancel.");
         }
         else {
+#ifdef  _DEBUG
           printf("Error: %s\n", NFD_GetError());
+#endif
         }
       }
       ImGui::SameLine();
@@ -139,6 +143,7 @@ public:
 
   static void AddFonts() {
     ImGuiIO& io = ImGui::GetIO();
+    io.MouseDrawCursor = false;
 
     io.Fonts->Clear(); // clear fonts if you loaded some before (even if only default one was loaded)
     // IO.Fonts->AddFontDefault(); // this will load default font as well

@@ -42,10 +42,13 @@ static LRESULT CALLBACK mycallback(HWND handle, UINT message, WPARAM wParam, LPA
     POINT p;
     p.x = 0;
     p.y = 0;
+#ifdef  _DEBUG
     if (DragQueryPoint(hdrop, &p))
       std::printf("Point is %d, %d\n", p.x, p.y);
     else
       puts("Failed to get point");
+#endif //  _DEBUG
+
 
     const UINT filescount = DragQueryFile(hdrop, 0xFFFFFFFF, NULL, 0);
     for (UINT i = 0; i < filescount; ++i) {
@@ -56,25 +59,47 @@ static LRESULT CALLBACK mycallback(HWND handle, UINT message, WPARAM wParam, LPA
         std::string stdstr;
         // end - 1 because we don't want to copy the \0, right?
         sf::Utf8::fromWide(str.begin(), str.end() - 1, std::back_inserter(stdstr));
+#ifdef  _DEBUG
         puts(stdstr.c_str());
+#endif
         glspv::ShaderData new_data(glspv::Utils::GetMyDocumentsFolder());
         new_data.format(stdstr);
         AppData.datalist.add(new_data);
       }
     }
     DragFinish(hdrop);
+#ifdef  _DEBUG
     puts("-------------");
+#endif
     //std::cout << "-------------" << std::endl;
   }//if WM_DROPFILES
   return CallWindowProcW(reinterpret_cast<WNDPROC>(AppData.originalsfmlcallback), handle, message, wParam, lParam);
 }
 
+static void ClearConsole() {
+  COORD topLeft = { 0, 0 };
+  HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_SCREEN_BUFFER_INFO screen;
+  DWORD written;
+
+  GetConsoleScreenBufferInfo(console, &screen);
+  FillConsoleOutputCharacterA(
+    console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written
+  );
+  FillConsoleOutputAttribute(
+    console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
+    screen.dwSize.X * screen.dwSize.Y, topLeft, &written
+  );
+  SetConsoleCursorPosition(console, topLeft);
+}
+
 static void SaveIni() {
   std::string default_ini =
     "[Window]\n"\
-    "Title=" + AppData.title + "\n" \
     "Width=" + std::to_string((int)AppData.windowSize.x) + "\n"\
-    "Height=" + std::to_string((int)AppData.windowSize.y) + "\n";
+    "Height=" + std::to_string((int)AppData.windowSize.y) + "\n"\
+    "[Vulkan]\n"\
+    "Path=" + AppData.vulkanSdk + "\n";
   std::ofstream out("settings.ini");
   out << default_ini;
   out.close();
@@ -87,9 +112,9 @@ void glspv::App::init() {
   AppData.title = "GLSL-SPV";
   INIReader ini("settings.ini");
   if (!ini.ParseError()) {
-    AppData.title = ini.Get("Window", "Title", AppData.title);
     AppData.windowSize.x = ini.GetReal("Window", "Width", AppData.windowSize.x);
     AppData.windowSize.y = ini.GetReal("Window", "Height", AppData.windowSize.y);
+    AppData.vulkanSdk = ini.Get("Vulkan", "Path", "");
   } else {
     SaveIni();
   }
@@ -126,13 +151,11 @@ void glspv::App::run() {
     int32_t window_flags =
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav;
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
-    ImGui::SetNextWindowSize(AppData.windowSize);
+    ImGui::SetNextWindowSize(AppData.renderWindow->getSize());
     ImGui::Begin("Main window", 0, window_flags);
 
 
-    if (Utils::TextInput(AppData.vulkanSdk, "Vulkan SDK Path", "C:\\VulkanSDK\\x.x.xxx.x", Utils::kTextInput_PickFolder, AppData.defaultVulkanSdk.c_str(), NULL)) {
-      AppData.defaultVulkanSdk = AppData.vulkanSdk;
-    }
+    Utils::TextInput(AppData.vulkanSdk, "Vulkan SDK Path", "C:\\VulkanSDK\\x.x.xxx.x", Utils::kTextInput_PickFolder, AppData.defaultVulkanSdk.c_str(), NULL);
     Utils::SetGreenButtonColor();
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
     if (ImGui::Button("Add Shader", ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
@@ -153,6 +176,7 @@ void glspv::App::run() {
     Utils::SetGreenButtonColor();
     float width = (ImGui::GetContentRegionAvailWidth() * 0.5f) - 5.0f;
     if (ImGui::Button("Compile", ImVec2(width, 0))) {
+      ClearConsole();
       AppData.datalist.compile(AppData.vulkanSdk + "\\Bin32\\glslc.exe");
     }
     Utils::ResetButtonColor();
@@ -172,6 +196,7 @@ void glspv::App::run() {
 }
 
 void glspv::App::shutdown() {
+  SaveIni();
   ImGui::SFML::Shutdown();
   AppData.renderWindow.reset();
 }
