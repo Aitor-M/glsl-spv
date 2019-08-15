@@ -1,6 +1,6 @@
 # glsl-spv
 
-**glsl-spv** is a tool that compiles GLSL code to SPIR-V. You can download the lates release [here](https://github.com/Aitor-M/glsl-spv/releases)
+**glsl-spv** is a tool that compiles GLSL code to SPIR-V. You can download the lates release [here](https://github.com/Aitor-M/glsl-spv/releases).
 
 ![Usage Demo](https://i.imgur.com/irz8BoM.gif)
 
