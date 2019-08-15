@@ -9,7 +9,8 @@
 * Vulkan SDK selection.
 * Multiple shader compilation.
 
-## Dependencies.
+## Dependencies
+* Vulkan SDK
 * [SFML](https://www.sfml-dev.org/)
 * [Dear ImGui](https://github.com/ocornut/imgui)
 * [imgui-sfml](https://github.com/eliasdaler/imgui-sfml)
