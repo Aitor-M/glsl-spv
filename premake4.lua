@@ -1,15 +1,13 @@
 local INCLUDE_DEPS = "include/deps/"
 local OUT_DIR = "bin/Win64/"
 
--- Clean and copy Shared Libraries
-os.rmdir("bin")
 os.rmdir("build")
 
 printf("Out dir: %s", OUT_DIR)
 os.mkdir(OUT_DIR)
 
 --GENERATE SOLUTION
-solution "_GLSL-PV"
+solution "_glsl-spv"
   defines {
     "_CRT_SECURE_NO_WARNINGS",
     "WIN32_LEAN_AND_MEAN",
@@ -43,8 +41,8 @@ solution "_GLSL-PV"
       
 --END GENERATE SOLUTION
 
---GLSL-PV
-project "GLSL-PV"
+--glsl-spv
+project "glsl-spv"
   language "C++"
   kind "ConsoleApp"
   flags {
